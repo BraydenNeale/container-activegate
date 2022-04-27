@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dynatrace-activegate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      custom: dynatrace-activegate
+  template:
+    metadata:
+      labels:
+        custom: dynatrace-activegate
+    spec:
+      containers:
+        - name: dynatrace-activegate
+          imagePullPolicy: Always
+          image: braydenneale/dynatrace-activegate:v1.239.195
+          ports:
+            - name: https-port
+              containerPort: 9999
+          # command:
+          #   - /bin/sh
+          #   - -c
+          #   - |
+          #     cat << EOF >> /var/lib/dynatrace/gateway/config/custom.properties && service dynatracegateway restart && tail -f /var/log/dynatrace/gateway/dynatracegateway*.log
+          #     [rpm]
+          #     rpm_enabled = true
+          #     [extension_controller]
+          #     extension_controller = true
+      imagePullSecrets:
+      - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dynatrace-activegate
+spec:
+  selector:
+    custom: dynatrace-activegate
+  type: ClusterIP
+  ports:
+    - name: https-dynatrace-activegate
+      protocol: TCP
+      port: 9999
+      targetPort: 9999
